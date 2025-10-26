@@ -4,10 +4,12 @@ import Timer from './pages/Timer'
 import Scripture from './pages/Scripture'
 import InsightForm from './pages/InsightForm'
 import Success from './pages/Success'
+import Navbar from './components/Navbar'
 
 export default function App() {
   return (
     <BrowserRouter>
+      <Navbar />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/timer" element={<Timer />} />
