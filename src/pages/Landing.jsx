@@ -4,11 +4,13 @@ import BackgroundMotion from "../components/BackgroundMotion";
 import { scriptures } from "../data/scriptures";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { copyToClipboard } from "../utils/clipboard";
+import { showToast } from "../utils/toast";
 
 export default function Landing() {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
   const prayerRef = useRef(null);
+  const [showOnboard, setShowOnboard] = useState(false);
 
   // cycle scriptures every 5s
   useEffect(() => {
@@ -16,12 +18,33 @@ export default function Landing() {
     return () => clearInterval(i);
   }, []);
 
+  // onboarding shown once
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem("pc_onboard_v1");
+      if (!seen) {
+        setShowOnboard(true);
+      }
+    } catch (e) {}
+  }, []);
+
+  const closeOnboard = () => {
+    try {
+      localStorage.setItem("pc_onboard_v1", "1");
+    } catch (e) {}
+    setShowOnboard(false);
+    showToast("Welcome. Begin in a moment of stillness.", 2600);
+  };
+
   // animated scripture text (memoized)
   const currentScripture = useMemo(() => scriptures[index], [index]);
 
   const handleStart = () => {
-    // read prayer points and navigate to timer, pass points via navigation state
     const prayerPoints = prayerRef.current?.value || "";
+    // persist for timer page if user navigates manually
+    try {
+      localStorage.setItem("prayerPoints", prayerPoints);
+    } catch (e) {}
     navigate("/timer", { state: { prayerPoints } });
   };
 
@@ -30,9 +53,9 @@ export default function Landing() {
   const handleInviteCopy = async () => {
     const ok = await copyToClipboard(inviteText);
     if (ok) {
-      alert("Invite copied to clipboard. Paste anywhere to share.");
+      showToast("Invite copied to clipboard. Paste anywhere to share.", 3000);
     } else {
-      alert("Could not copy. You can manually copy: " + inviteText);
+      showToast("Copy failed. You can manually copy the invite.", 3000);
     }
   };
 
@@ -54,14 +77,15 @@ export default function Landing() {
           <img
             src="/founder.png"
             alt="Founder"
-            className="w-40 h-40 object-cover rounded-full border-4 border-arkgold shadow-lg"
+            className="w-48 h-48 object-cover rounded-full border-4 border-arkgold shadow-lg"
+            style={{ objectPosition: "center" }}
           />
         </div>
 
         {/* Persuasive copy */}
         <section className="mt-6 p-4 rounded-xl bg-black/30 border border-white/5">
           <p className="mb-3 text-sm">
-            Writing your vision brings clarity and ownership. "Where there is no vision the people perish."
+            Writing your vision brings clarity and ownership. “Where there is no vision the people perish.”
             When you write your desires and insights, the Lord aligns your steps and the vision becomes actionable.
             Trust in the Lord and He will give you the desires of your heart.
           </p>
@@ -113,6 +137,25 @@ export default function Landing() {
           </button>
         </div>
       </div>
+
+      {/* Onboarding overlay (Option C) */}
+      {showOnboard && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/70 p-6">
+          <div className="max-w-md w-full bg-gradient-to-b from-black/90 to-black/80 border border-white/6 rounded-2xl p-6 text-white">
+            <h3 className="text-2xl font-bold mb-2">Men ought always to pray and not faint</h3>
+            <p className="mb-4 text-sm italic">The earnest prayer of a righteous person availeth much.</p>
+            <p className="mb-6 text-sm">
+              Prayer Cloud is a guided space to pray with focus. Start a 15-minute session, receive insight, and
+              write down the vision God places in you.
+            </p>
+            <div className="flex justify-end">
+              <button onClick={closeOnboard} className="bg-arkgold px-4 py-2 rounded-full font-semibold">
+                Start Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+          }
