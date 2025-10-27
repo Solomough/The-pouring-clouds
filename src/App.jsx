@@ -5,6 +5,7 @@ import Scripture from "./pages/Scripture";
 import InsightForm from "./pages/InsightForm";
 import Success from "./pages/Success";
 import Navbar from "./components/Navbar";
+import Toasts from "./components/Toast";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/insight" element={<InsightForm />} />
         <Route path="/success" element={<Success />} />
       </Routes>
+      <Toasts />
     </BrowserRouter>
   );
 }
