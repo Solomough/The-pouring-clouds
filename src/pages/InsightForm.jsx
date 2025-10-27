@@ -2,11 +2,12 @@ import { useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import BackgroundMotion from "../components/BackgroundMotion";
 import { copyToClipboard } from "../utils/clipboard";
+import { showToast } from "../utils/toast";
 
 export default function InsightForm() {
   const navigate = useNavigate();
   const location = useLocation();
-  const prayerPoints = location.state?.prayerPoints || "";
+  const prayerPoints = location.state?.prayerPoints || (typeof window !== "undefined" ? localStorage.getItem("prayerPoints") : "");
   const insightRef = useRef(null);
   const dreamRef = useRef(null);
   const [promptVisible, setPromptVisible] = useState(false);
@@ -18,33 +19,28 @@ export default function InsightForm() {
 
     const message = `Prayer Insight:\n${insight}\n\nFuture Desire:\n${dream}\n\n#PrayerCloud`;
 
-    // Copy to clipboard first (fast UX)
     const ok = await copyToClipboard(message);
     if (ok) {
-      alert("Your thoughts have been copied to clipboard. Paste in your notes to keep them alive.");
+      showToast("Your thoughts have been copied to clipboard. Paste in your notes to keep them alive.", 3200);
     } else {
-      alert("Could not copy automatically. Please copy manually from the text area.");
+      showToast("Could not copy automatically. Please copy manually.", 3000);
     }
 
-    // show share prompt
     setPromptVisible(true);
 
-    // optionally store analytics later (Vercel KV) - placeholder for future
-    // e.g. fetch('/api/submit', {method:'POST', body: JSON.stringify({insight,dream})})
+    // Placeholder: analytics hook can be added here later
   };
 
   const handleShareYes = () => {
     const insight = insightRef.current?.value || "";
     const dream = dreamRef.current?.value || "";
-    const message = encodeURIComponent(
-      `Prayer Insight:\n${insight}\n\nFuture Desire:\n${dream}\n\n#PrayerCloud`
-    );
+    const message = encodeURIComponent(`Prayer Insight:\n${insight}\n\nFuture Desire:\n${dream}\n\n#PrayerCloud`);
     window.open(`https://wa.me/${founderPhone}?text=${message}`, "_blank");
     navigate("/success");
   };
 
   const handleShareNo = () => {
-    alert("Thanks for praying. Keep meditating.");
+    showToast("Thanks for praying. Keep meditating.", 2200);
     navigate("/");
   };
 
@@ -75,7 +71,6 @@ export default function InsightForm() {
           Complete & Copy
         </button>
 
-        {/* prompt modal-like area */}
         {promptVisible && (
           <div className="mt-4 p-4 rounded bg-black/40 border border-white/5">
             <div className="mb-3">Will you like to share your vision with the Founder for special mentorship sessions?</div>
